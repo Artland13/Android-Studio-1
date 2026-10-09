@@ -1,47 +1,79 @@
 package com.example.lab1
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.lab1.ui.theme.Lab1Theme
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContent {
-            Lab1Theme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
-            }
+            MaterialTheme { MainScreen() }
         }
     }
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+fun MainScreen() {
+    var text by remember { mutableStateOf("") }
+    val context = LocalContext.current
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    Lab1Theme {
-        Greeting("Androsdd")
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        OutlinedTextField(
+            value = text,
+            onValueChange = { text = it },
+            label = { Text("Введите текст") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(Modifier.height(16.dp))
+
+        Button(
+            onClick = {
+                val intent = Intent(context, SecondActivity::class.java)
+                intent.putExtra("EXTRA_TEXT", text)
+                context.startActivity(intent)
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) { Text("Открыть вторую Activity") }
+
+        Spacer(Modifier.height(8.dp))
+
+        Button(
+            onClick = {
+                if (text.isBlank()) return@Button
+                val intent = Intent(Intent.ACTION_DIAL).apply {
+                    data = Uri.parse("tel:${text.trim()}")
+                }
+                context.startActivity(intent)
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) { Text("Позвонить другу") }
+
+        Spacer(Modifier.height(8.dp))
+
+        Button(
+            onClick = {
+                if (text.isBlank()) return@Button
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, text)
+                }
+                context.startActivity(Intent.createChooser(intent, "Поделиться через..."))
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) { Text("Поделиться текстом") }
     }
 }
